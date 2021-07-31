@@ -1,49 +1,35 @@
 // Initialize button with user's preferred color
-let changeColor = document.getElementById("changeColor");
+let listImages = document.getElementById("listImages");
 
 chrome.storage.sync.get("color", ({ color }) => {
-    changeColor.style.backgroundColor = color;
+    listImages.style.backgroundColor = color;
     console.log('popup.js storage Synced');
 });
 
 // When the button is clicked, inject setPageBackgroundColor into current page
-changeColor.addEventListener("click", async () => {
+listImages.addEventListener("click", async () => {
     let [tab] = await chrome.tabs.query({ active: true, currentWindow: true });
-
     chrome.scripting.executeScript({
         target: { tabId: tab.id },
-        function: setPageBackgroundColor,
-    });
+        function: scanForImages,
+    },
+        (injectionResults) => {
+            for (const frameResult of injectionResults) {
+                if(frameResult.result.length > 0){
+                    //open image list html
+                    let imgListWindow = window.open('imglist.html', 'imgListWindow', 'status,top=0,right=0,width=350,height=' + window.screen.availHeight );
+                    //send array to popup
+                    imgListWindow.imglist = frameResult.result;
+                }
+            }
+        });
 });
 
-// The body of this function will be executed as a content script inside the
-// current page
-function setPageBackgroundColor() {
-    chrome.storage.sync.get("color", ({ color }) => {
-        document.body.style.backgroundColor = color;
-        console.log('popup.js:setPageBackgroundColor() executed');
-    });
+// The body of this function will be executed as a content script inside the current page
+function scanForImages() {
+    let imglist = Array.prototype.map.call(document.images, function (i) { return i.src; });
+    console.log('popup.js:scanForImages() executed. ' + imglist.length + " images found");
+    return imglist;
 }
-console.log('popup.js read');
 
-var callback = function (results) {
-    // ToDo: Do something with the image urls (found in results[0])
-
-    document.body.innerHTML = '';
-    for (var i in results[0]) {
-        var img = document.createElement('img');
-        img.src = results[0][i];
-
-        document.body.appendChild(img);
-    }
-    console.log('popup.js:callback() executed');
-};
-
-chrome.tabs.query({ // Get active tab
-    active: true,
-    currentWindow: true
-}, function (tabs) {
-    chrome.tabs.executeScript(tabs[0].id, {
-        code: 'Array.prototype.map.call(document.images, function (i) { return i.src; });'
-    }, callback);
-});
+const tabId = getTabId();
