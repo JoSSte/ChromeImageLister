@@ -1,6 +1,6 @@
 # Chrome Extension to list images on a page
 
-Simple Chrome plugin to list images on a page
+Simple Chrome plugin to list images on a page that are bigger than 500px on their longest edge.
 
 
 
