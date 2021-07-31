@@ -27,9 +27,9 @@ function populateList() {
         li.appendChild(f);
 
         thelist.appendChild(li);
-        //a little kludgy, but if image is below min size, remove it from the list. we can't get the image dimensions before they have been loaded.
+
+        //This is a little kludgy, but if image is below min size, remove it from the list. we can't get the image dimensions before they have been loaded. Maybe a display:none would be appropriate?
         i.onload = function () {
-            //console.info(basename(this.src) + ' ' + this.naturalWidth + 'x' + this.naturalHeight);
             if (this.naturalWidth < 500 && this.naturalHeight < 500) {
                 console.info('removing' + basename(this.src) + ' ' + this.naturalWidth + 'x' + this.naturalHeight);
                 //remove li element
